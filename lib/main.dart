@@ -1,14 +1,9 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'firebase_options.dart'; 
-
-
-
-
-
-
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,7 +38,7 @@ class _MyAppState extends State<MyApp> {
           title: const Text('Firestore Example'),
         ),
         body: Container(
-          color: const Color.fromARGB(255, 200, 230, 255), 
+          color: const Color.fromARGB(255, 200, 230, 255),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -54,26 +49,45 @@ class _MyAppState extends State<MyApp> {
                     labelText: 'Add a new user',
                   ),
                 ),
-                SizedBox(height: 16.0), 
+                SizedBox(height: 16.0),
                 ElevatedButton(
                   onPressed: () {
                     _addUser();
                   },
                   child: Padding(
-                    padding: const EdgeInsets.all(10.0), 
+                    padding: const EdgeInsets.all(10.0),
                     child: Text(
                       'Add',
-                      style: TextStyle(fontSize: 16.0), 
+                      style: TextStyle(fontSize: 16.0),
                     ),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 100, 200, 100), 
+                    backgroundColor: const Color.fromARGB(255, 100, 200, 100),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0), 
+                      borderRadius: BorderRadius.circular(8.0),
                     ),
                   ),
                 ),
-                SizedBox(height: 16.0), 
+                SizedBox(height: 16.0),
+                ElevatedButton(
+                  onPressed: () async {
+                    await signInWithGoogle();
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Text(
+                      'Sign in with Google',
+                      style: TextStyle(fontSize: 16.0),
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color.fromARGB(255, 255, 0, 0),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 16.0),
                 StreamBuilder<QuerySnapshot>(
                   stream: _usersCollection.snapshots(),
                   builder: (BuildContext context,
@@ -116,7 +130,15 @@ class _MyAppState extends State<MyApp> {
       _usersCollection.doc(username).set({'timestamp': DateTime.now()});
       _textEditingController.clear();
 
+      // Hier den Stream aktualisieren
       setState(() {});
     }
+  }
+
+  Future<UserCredential> signInWithGoogle() async {
+    final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+    final GoogleSignInAuthentication? googleAuth = await googleUser?.authentication;
+    final credential = GoogleAuthProvider.credential(accessToken: googleAuth?.accessToken, idToken: googleAuth?.idToken);
+    return await FirebaseAuth.instance.signInWithCredential(credential);
   }
 }
